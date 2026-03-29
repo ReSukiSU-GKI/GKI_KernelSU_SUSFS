@@ -576,6 +576,11 @@ jobs:
                 sed -i 's/defined(CONFIG_KSU_MANUAL_HOOK))/!defined(CONFIG_KSU_SUSFS) \&\& defined(CONFIG_KSU_MANUAL_HOOK))/' "$SETUID_HOOK"
                 echo "已修复 setuid_hook.c 重复定义问题"
               fi
+              # 修复 fs/exec.c 缺少 susfs.h 导致 susfs_is_current_proc_umounted 未声明的问题
+              if grep -q 'susfs_is_current_proc_umounted' ./fs/exec.c && ! grep -qF 'susfs.h' ./fs/exec.c; then
+                echo "检测到 fs/exec.c 缺少 susfs.h，注入声明..."
+                sed -i '/#include <linux\/fs.h>/a #include <linux\/susfs.h>' ./fs/exec.c
+              fi
             fi
           fi
 
